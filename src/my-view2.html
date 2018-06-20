@@ -1,0 +1,223 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<script src="../node_modules/web-animations-js/web-animations-next.min.js"></script>
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-sorter.html">
+<link rel="import" href="../bower_components/vaadin-date-picker/vaadin-date-picker.html">
+<link rel="import" href="../bower_components/vaadin-upload/vaadin-upload.html">
+<link rel="import" href="../bower_components/paper-search/paper-search-panel.html">
+
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="my-view2">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      vaadin-grid .status {
+        text-transform: capitalize;
+      }
+
+      vaadin-grid .status-new {
+        color: var(--lumo-error-color);
+        font-weight: 500;
+      }
+
+      vaadin-grid .status-in_progress {
+        font-weight: 500;
+        font-style: italic;
+        text-transform: capitalize;
+      }
+
+      vaadin-grid .total {
+        text-align: right;
+      }
+
+      vaadin-grid#expenses .cell.last {
+        padding-right: 24px;
+      }
+
+      vaadin-grid#expenses .numeric {
+        text-align: right;
+      }
+
+      vaadin-grid#expenses .comment {
+        text-overflow: ellipsis;
+      }
+
+      .card .ExpTotal{
+        color: var(--lumo-error-color);
+        font-weight: 500;
+        font-size: 20px;
+      }
+    </style>
+
+    <div class="card">
+      <h3>Add your Expenses</h3>
+      <paper-dropdown-menu label="Select Expense">
+        <paper-listbox id="Merchant" slot="dropdown-content">
+          <template is="dom-repeat" items="{{expenses.merchants}}">
+              <paper-item role$="{{item}}">{{item}}</paper-item>
+          </template>          
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <vaadin-date-picker placeholder="Select Date" id="DatePicker" value="13">
+      </vaadin-date-picker>
+      <!-- <vaadin-upload accept="image/*"></vaadin-upload> -->
+      <paper-input type="number" error-message="Invalid input!" label="Total" value="{{expenses.total}}"></paper-input>
+      <paper-search-panel
+        search="{{search}}"
+        count="{{count}}"
+        items="[[items]]"
+        has-more="[[hasMore]]"
+        loading="[[loading]]"
+        filters="[[expensList]]"
+        selected-filters="{{selectedFilters}}"
+        on-change-request-params="expensList">
+        <div>
+          Show your [[count]] results for "[[search]]"
+        </div>
+      </paper-search-panel>
+      <paper-textarea label="Add comments" value="{{expenses.comments}}"></paper-textarea>
+      <paper-button raised on-click="_addExpense">Add Expense</paper-button>
+    </div>
+
+    <vaadin-grid items="[[expensList]]" id="expenses" active-item="{{activeItem}}">
+        <vaadin-grid-column width="8em" frozen>
+          <template class="header">
+            <vaadin-grid-sorter path="date" direction="desc">
+              <div class="header-cell">
+                Date
+              </div>
+            </vaadin-grid-sorter>
+          </template>
+          <template>
+            [[item.date]]
+          </template>
+        </vaadin-grid-column>
+  
+        <vaadin-grid-column width="8em" flex-grow="2">
+          <template class="header">
+            <vaadin-grid-sorter path="merchant">
+              <div class="header-cell">
+                Merchant
+              </div>
+            </vaadin-grid-sorter>
+          </template>
+          <template>
+            [[item.merchant]]
+          </template>
+        </vaadin-grid-column>
+  
+        <vaadin-grid-column width="6em">
+          <template class="header">
+            <vaadin-grid-sorter path="total" class="numeric">
+              <div class="header-cell">
+                Total
+              </div>
+            </vaadin-grid-sorter>
+          </template>
+          <template>
+            <span class="total">[[item.total]]</span>
+          </template>
+        </vaadin-grid-column>
+  
+        <vaadin-grid-column width="14em" flex-grow="3">
+          <template class="header">
+            <vaadin-grid-sorter path="comment">
+              <div class="header-cell">
+                Comment
+              </div>
+            </vaadin-grid-sorter>
+          </template>
+          <template>
+            <div class="comment">[[item.comments]]</div>
+          </template>
+        </vaadin-grid-column>
+      </vaadin-grid>
+
+      <div class="card">
+        <div>Your Total expense is <span class="ExpTotal">{{expenses.TotalExp}}</span></div>
+      </div>
+  </template>
+
+  <script>
+    class MyView2 extends Polymer.Element {
+      static get is() { return 'my-view2'; }
+      static get properties(){
+        return{
+          expenses:{
+            type:Object,
+            value:{
+              merchants:['Office supplies', 'Electricity Bill', 'Rental car', 'Airline',
+            'Hotel', 'Restaurant', 'Taxi', 'Ride sharing', 'Fast food',
+            'Parking', 'Breakfast', 'Shuttle','Internet Plan','House Rent'],
+              total:"",
+              comments:""
+            },
+            notify: true
+          },
+          expensList:{
+            type:Array,
+            value:[],
+            notify: true
+          },
+        }
+      }
+      
+      _addExpense(){
+        this.set('expenses.merchant', this.$.Merchant.querySelector('.iron-selected').getAttribute('role'));
+        this.set('expenses.date', this.$.DatePicker.value);   
+        this.push('expensList', Object.assign({}, this.expenses));
+        //To count total Expenses
+        let totalExp = 0;
+        for (let o of this.expensList) {
+          console.log(o.total);
+          totalExp += Number(o.total);
+          this.set('expenses.TotalExp', totalExp)
+        }   
+        console.log('expensList ', this.expensList);
+        this.set('expenses.date', "");
+        this.set('expenses.total', "");
+        this.set('expenses.comments', "");    
+        this.set('expenses.merchant', "");   
+        //To store expensList on Local storage
+        let mydata = {
+          data:this.expensList,
+          total:totalExp
+        }
+        localStorage.setItem("expenseData",JSON.stringify(mydata)); 
+      }
+
+      ready(){
+        super.ready();
+        if(localStorage.getItem('expenseData')){
+        let testData = JSON.parse(localStorage.getItem('expenseData'));
+        this.expensList = testData.data
+        this.set('expenses.TotalExp', testData.total);
+        this.notifyPath('expensList');
+        console.log(this.expensList);
+        }
+      }
+    }
+
+    window.customElements.define(MyView2.is, MyView2);
+  </script>
+</dom-module>

@@ -1,0 +1,126 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/mp-slider/mp-slider.html">
+<link rel="import" href="../bower_components/highcharts-chart/highcharts-chart.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="my-view1">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      @media only screen and (min-device-width : 1500px) and (orientation : landscape) {
+        mp-slider img{
+          height: 550px;
+        }
+      }
+    </style>
+
+    <mp-slider controls bullets>
+      <div>
+          <img src="../images/expense1.jpg" />
+          <mp-caption slider-header="You dont remember your expenses?"
+                      slider-content="We can help you to remember your daily expenses">
+          </mp-caption>
+      </div>
+  
+      <div>
+          <img src="../images/expense2.jpg" />
+          <mp-caption slider-header="Do you want to manage your money?"></mp-caption>
+      </div>
+  
+      <div>
+          <img src="../images/expense3.jpg" />
+          <mp-caption slider-content="Save your money?"></mp-caption>
+      </div>
+
+      <div>
+          <img src="../images/expense4.jpg" />
+          <mp-caption slider-content="Click on Add Expense tab in sidebar to add your expenses"></mp-caption>
+      </div>
+  </mp-slider>
+  <div id="highChart"></div>
+  <div class="card">
+    <h3>You have spent total: <b>{{grandTotal}}Rs.</b></h3>
+    </div>
+  </template>
+
+  <script>
+    class MyView1 extends Polymer.Element {
+      static get is() { return 'my-view1'; }
+      static get properties(){
+        return{
+          expensList:{
+            type:Array,
+            notify: true,
+            observer: '_graphDataChanged'
+          },
+          graphDataInt:{
+            type:Array,
+            value:[]
+          },
+          grandTotal:Number
+        }
+      }
+      // static get observers() {
+      //   return [
+      //     '_graphDataChanged(expensList)',
+      //   ];
+      // }
+      ready(){
+        super.ready();
+        console.log("graph data from ready",this.expensList)
+        if(this.expensList==undefined){
+          this.expensList = JSON.parse(localStorage.getItem('expenseData')).data;
+          this.grandTotal = JSON.parse(localStorage.getItem('expenseData')).total;
+        }
+        this.initGraph();
+      }
+
+      initGraph() {
+        console.log("graph data from initgraph",this.expensList);
+        if(this.expensList){
+          for(let o of this.expensList){
+            this.eachTotal = o.total;
+            this.push('graphDataInt', parseInt(this.eachTotal));
+          }
+          $(this.$.highChart).highcharts({
+              chart: {
+                type: 'spline',
+                renderTo: 'HighChart'
+              },
+              title: {text:  'HI'},
+              xAxis: {
+                  title:{
+                    text: 'daily expenses'
+                  }
+              },
+              series: [{
+                  name: 'Expense',
+                  data: this.graphDataInt
+              }]
+          })
+        }
+      }
+      
+      _graphDataChanged(expensList) {
+        console.log('from ovserver')
+        console.table("graphdata from observer",this.expensList);
+        this.initGraph();
+      }
+    }
+
+    window.customElements.define(MyView1.is, MyView1);
+  </script>
+</dom-module>

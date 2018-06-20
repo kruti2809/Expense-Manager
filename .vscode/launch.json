@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run wct",
+      "program": "${workspaceRoot}/node_modules/.bin/wct",
+      "args": [
+        "-p",
+        "--skip-plugin", "local",
+        "--plugin", "none",
+        "--webserver-port", "8000",
+        "--expanded",
+        "--simpleOutput", "/"
+      ]
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Run chrome for wct",
+      "url": "http://localhost:8000/components/polymer_POC/index.html",
+      "webRoot": "${workspaceRoot}",
+      "userDataDir": "${workspaceRoot}/.vscode/chrome"
+    }
+  ]
+}

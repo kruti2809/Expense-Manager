@@ -1,0 +1,103 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="my-view3">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      paper-input{
+        display: inline-block;
+      }
+      paper-card > .card-content{
+        background-color: rgb(240, 238, 128);
+        color:#000;
+      }
+    </style>
+    <custom-style>
+        <style is="custom-style">
+          #notes {
+            @apply --layout-wrap;
+            height: 344px;
+            width: auto;
+          }
+      
+          #notes > paper-card {
+            box-sizing: border-box;
+            max-width: 400px;
+            margin: 3px;
+            flex: 0 0 auto;
+            padding-top: 10px;
+          }
+        </style>
+      </custom-style>
+    <div class="card">
+      <h3>Add Your Income</h3>
+      <paper-input type="number" error-message="Invalid input!" label="Your monthly income" value="{{monthIncome}}"></paper-input>
+      <paper-button raised on-click="_countBal">Calculator</paper-button>
+      <div id="notes">
+          <paper-card image="../images/expense5.jpg" alt="income" class="amber">
+            <div class="card-content">Income: {{monthIncome}} <br>
+               Remaining: {{remainIncome}}</div>
+          </paper-card>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class MyView3 extends Polymer.Element {
+      static get is() { return 'my-view3'; }
+      static get properties(){
+        return{
+          monthIncome:{
+            type:Number,
+            value:"",
+            reflectToAttribute:true
+          },
+          remainIncome:{
+            type:Number,
+            value:"",
+            reflectToAttribute:true
+          }
+        }
+      }
+      _countBal(){
+        let totalExp = JSON.parse(localStorage.getItem('expenseData')).total;
+        if(this.monthIncome){
+          this.remainIncome = this.monthIncome - totalExp;
+        }
+        let calcBal = {
+          incomeBal:this.monthIncome,
+          remainBal:this.remainIncome
+        }
+        console.log(this.remainIncome)
+        localStorage.setItem("remainBal",JSON.stringify(calcBal)); 
+      }
+      ready(){
+        super.ready();
+        console.log(JSON.parse(localStorage.getItem('remainBal')));
+        if(JSON.parse(localStorage.getItem('remainBal'))){
+          this.monthIncome = JSON.parse(localStorage.getItem('remainBal')).incomeBal;
+          this.remainIncome = JSON.parse(localStorage.getItem('remainBal')).remainBal;
+        }
+      }
+    }
+
+    window.customElements.define(MyView3.is, MyView3);
+  </script>
+</dom-module>
