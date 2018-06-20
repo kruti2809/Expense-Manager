@@ -26,7 +26,9 @@
     "vaadin-upload": "vaadin/vaadin-upload#^4.1.0",
     "highcharts-chart": "avdaredevil/highcharts-chart#^2.0.2",
     "paper-card": "PolymerElements/paper-card#^2.1.0",
-    "paper-search": "Collaborne/paper-search#^2.0.9"
+    "paper-search": "Collaborne/paper-search#^2.0.9",
+    "paper-checkbox": "PolymerElements/paper-checkbox#^2.0.4",
+    "paper-radio-group": "PolymerElements/paper-radio-group#^2.2.0"
   },
   "resolutions": {
     "polymer": "^2.0.0"

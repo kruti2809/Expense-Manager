@@ -20,6 +20,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/vaadin-date-picker/vaadin-date-picker.html">
 <link rel="import" href="../bower_components/vaadin-upload/vaadin-upload.html">
 <link rel="import" href="../bower_components/paper-search/paper-search-panel.html">
+<link rel="import" href="../bower_components/vaadin-grid/vaadin-grid-filter.html">
+<link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
 
 
 <link rel="import" href="shared-styles.html">
@@ -67,6 +70,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         font-weight: 500;
         font-size: 20px;
       }
+      .hidden {
+        display: none;
+      }
     </style>
 
     <div class="card">
@@ -81,40 +87,50 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <vaadin-date-picker placeholder="Select Date" id="DatePicker" value="13">
       </vaadin-date-picker>
       <!-- <vaadin-upload accept="image/*"></vaadin-upload> -->
-      <paper-input type="number" error-message="Invalid input!" label="Total" value="{{expenses.total}}"></paper-input>
-      <paper-search-panel
-        search="{{search}}"
-        count="{{count}}"
-        items="[[items]]"
-        has-more="[[hasMore]]"
-        loading="[[loading]]"
-        filters="[[expensList]]"
-        selected-filters="{{selectedFilters}}"
-        on-change-request-params="expensList">
-        <div>
-          Show your [[count]] results for "[[search]]"
-        </div>
-      </paper-search-panel>
+      <paper-input type="number" label="Total" value="{{expenses.total}}"></paper-input>
       <paper-textarea label="Add comments" value="{{expenses.comments}}"></paper-textarea>
       <paper-button raised on-click="_addExpense">Add Expense</paper-button>
     </div>
-
-    <vaadin-grid items="[[expensList]]" id="expenses" active-item="{{activeItem}}">
+    <div class="card">
+      <template is="dom-if" if="{{_isEqualTo(selectedRadio,'date')}}">
+        <paper-input type="text" label="Search by date" value="{{expenses.search.date}}"></paper-input>
+      </template>
+      <template is="dom-if" if="{{_isEqualTo(selectedRadio,'merchant')}}">
+        <paper-input type="text" label="Search by merchant" value="{{expenses.search.merchant}}"></paper-input>
+      </template>
+      <template is="dom-if" if="{{_isEqualTo(selectedRadio,'total')}}">
+        <paper-input type="text" label="Search by price" value="{{expenses.search.total}}"></paper-input>        
+      </template>
+      <template is="dom-if" if="{{_isEqualTo(selectedRadio,'comment')}}">
+        <paper-input type="text" label="Search by comment" value="{{expenses.search.comments}}"></paper-input>          
+      </template>
+      <paper-radio-group id="radio">
+        <paper-radio-button name="date">filter by date</paper-radio-button>
+        <paper-radio-button name="merchant">filter by merchant</paper-radio-button>
+        <paper-radio-button name="total">filter by price</paper-radio-button>
+        <paper-radio-button name="comment">filter by comment</paper-radio-button>        
+      </paper-radio-group>
+      <paper-button on-click="_filters">add filter</paper-button>
+    </div>
+   
+    <vaadin-grid items="[[expensList]]" id="expensesList">
         <vaadin-grid-column width="8em" frozen>
           <template class="header">
+            <vaadin-grid-filter class="hidden" path="date" value="{{expenses.search.date}}"></vaadin-grid-filter>
             <vaadin-grid-sorter path="date" direction="desc">
               <div class="header-cell">
                 Date
               </div>
             </vaadin-grid-sorter>
           </template>
-          <template>
+          <template class="seach-data">
             [[item.date]]
           </template>
         </vaadin-grid-column>
   
         <vaadin-grid-column width="8em" flex-grow="2">
-          <template class="header">
+          <template class="header">            
+              <vaadin-grid-filter class="hidden" path="merchant" value="{{expenses.search.merchant}}"></vaadin-grid-filter>         
             <vaadin-grid-sorter path="merchant">
               <div class="header-cell">
                 Merchant
@@ -128,6 +144,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   
         <vaadin-grid-column width="6em">
           <template class="header">
+              <vaadin-grid-filter class="hidden" path="total" value="{{expenses.search.total}}"></vaadin-grid-filter>           
             <vaadin-grid-sorter path="total" class="numeric">
               <div class="header-cell">
                 Total
@@ -141,7 +158,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   
         <vaadin-grid-column width="14em" flex-grow="3">
           <template class="header">
-            <vaadin-grid-sorter path="comment">
+              <vaadin-grid-filter class="hidden" path="comments" value="{{expenses.search.comments}}"></vaadin-grid-filter>            
+            <vaadin-grid-sorter path="comments">
               <div class="header-cell">
                 Comment
               </div>
@@ -154,7 +172,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </vaadin-grid>
 
       <div class="card">
-        <div>Your Total expense is <span class="ExpTotal">{{expenses.TotalExp}}</span></div>
+        <div>Your Total expense is <span class="ExpTotal">{{expenses.TotalExp }}</span></div>
       </div>
   </template>
 
@@ -170,7 +188,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             'Hotel', 'Restaurant', 'Taxi', 'Ride sharing', 'Fast food',
             'Parking', 'Breakfast', 'Shuttle','Internet Plan','House Rent'],
               total:"",
-              comments:""
+              comments:"",
+              search:{
+                value:{
+                  date:"",
+                  merchants:"",
+                  total:"",
+                  comments:""
+                }
+              }
             },
             notify: true
           },
@@ -179,6 +205,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             value:[],
             notify: true
           },
+          selectedRadio:{
+            type:String,
+            value:""
+          }
         }
       }
       
@@ -205,6 +235,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
         localStorage.setItem("expenseData",JSON.stringify(mydata)); 
       }
+      
+      _isEqualTo(filterType, str) {
+        return filterType === str;
+        console.log(filterType === str)
+      }
+
+       _filters(){
+        this.selectedRadio = this.$.radio.selected;
+       }
 
       ready(){
         super.ready();
@@ -215,6 +254,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.notifyPath('expensList');
         console.log(this.expensList);
         }
+        
       }
     }
 
